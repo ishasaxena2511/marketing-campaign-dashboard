@@ -4,9 +4,9 @@ Captures high-resolution, production-grade screenshots using Playwright Chromium
 Saves outputs directly to the existing `screenshots/` directory without deleting existing files.
 """
 
+import subprocess
 import sys
 import time
-import subprocess
 import urllib.request
 from pathlib import Path
 
@@ -17,7 +17,7 @@ if sys.stdout.encoding != "utf-8":
 from playwright.sync_api import sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SCREENSHOTS_DIR = REPO_ROOT / "screenshots"
+SCREENSHOTS_DIR = REPO_ROOT / "screenshot"
 PORT = 8599
 BASE_URL = f"http://localhost:{PORT}"
 
@@ -93,6 +93,33 @@ def scroll_entire_page(page):
     page.wait_for_timeout(1000)
 
 
+def safe_screenshot(target, output_path: Path, **kwargs) -> bool:
+    """
+    Saves screenshot with retry logic to gracefully tolerate transient
+    Windows/OneDrive file indexing locks ([Errno 22] Invalid argument).
+    Renders screenshot directly to in-memory bytes first, then writes to disk.
+    Synchronizes both `screenshot/` and `screenshots/` folders simultaneously.
+    """
+    img_bytes = target.screenshot(**kwargs)
+    alt_folder = "screenshots" if output_path.parent.name == "screenshot" else "screenshot"
+    alt_path = REPO_ROOT / alt_folder / output_path.name
+    alt_path.parent.mkdir(parents=True, exist_ok=True)
+
+    for attempt in range(5):
+        try:
+            output_path.write_bytes(img_bytes)
+            alt_path.write_bytes(img_bytes)
+            if output_path.exists() and output_path.stat().st_size >= len(img_bytes):
+                return True
+            time.sleep(0.5)
+        except Exception as e:
+            if attempt < 4:
+                time.sleep(1.2)
+            else:
+                raise e
+    return False
+
+
 def capture_full_dashboard(page, output_path: Path):
     """
     Captures the entire dashboard without cropping.
@@ -116,8 +143,8 @@ def capture_full_dashboard(page, output_path: Path):
     page.set_viewport_size({"width": 1920, "height": target_height})
     page.wait_for_timeout(1000)
 
-    # Capture page
-    page.screenshot(path=str(output_path), full_page=True)
+    # Capture page safely
+    safe_screenshot(page, output_path, full_page=True)
 
     # Restore viewport
     page.set_viewport_size(orig_viewport)
@@ -150,8 +177,9 @@ def capture_kpi_section(page, output_path: Path) -> bool:
     max_x = max(b["x"] + b["width"] for b in boxes) + pad
     max_y = max(b["y"] + b["height"] for b in boxes) + pad
 
-    page.screenshot(
-        path=str(output_path),
+    safe_screenshot(
+        page,
+        output_path,
         clip={"x": min_x, "y": min_y, "width": max_x - min_x, "height": max_y - min_y},
     )
     return True
@@ -170,12 +198,14 @@ def capture_card_container(page, title_text: str, output_path: Path, extra_wait_
     el = title_loc.first
     container = el.locator('xpath=ancestor::div[@data-testid="stVerticalBlockBorderWrapper"]').first
     if container.count() == 0:
-        container = el.locator('xpath=ancestor::div[contains(@class, "stVerticalBlock") or @data-testid="stVerticalBlockBorderWrapper"][1]')
+        container = el.locator(
+            'xpath=ancestor::div[contains(@class, "stVerticalBlock") or @data-testid="stVerticalBlockBorderWrapper"][1]'
+        )
 
     target = container if container.count() > 0 else el
     target.scroll_into_view_if_needed()
     page.wait_for_timeout(extra_wait_ms)
-    target.screenshot(path=str(output_path))
+    safe_screenshot(target, output_path)
     return True
 
 
@@ -199,8 +229,9 @@ def capture_combined_cards(page, title1: str, title2: str, output_path: Path) ->
                 min_y = max(0, min(b1["y"], b2["y"]) - pad)
                 max_x = max(b1["x"] + b1["width"], b2["x"] + b2["width"]) + pad
                 max_y = max(b1["y"] + b1["height"], b2["y"] + b2["height"]) + pad
-                page.screenshot(
-                    path=str(output_path),
+                safe_screenshot(
+                    page,
+                    output_path,
                     clip={"x": min_x, "y": min_y, "width": max_x - min_x, "height": max_y - min_y},
                 )
                 return True
@@ -343,27 +374,13 @@ def run_capture_suite():
                 sidebar = page.locator('section[data-testid="stSidebar"]')
                 plat_ms = sidebar.locator('div[data-testid="stMultiSelect"]').first
 
-                # Clear all current selections
-                clear_btn = plat_ms.locator('[aria-label="Clear all"]')
-                if clear_btn.count() > 0:
-                    clear_btn.first.click()
-                    page.wait_for_timeout(800)
+                # Remove non-Google platforms directly using their remove buttons
+                for name in ["Email", "Facebook", "Instagram", "LinkedIn", "YouTube"]:
+                    btn = plat_ms.locator(f'button[aria-label="Remove {name}"]')
+                    if btn.count() > 0:
+                        btn.first.click()
+                        page.wait_for_timeout(250)
 
-                # Focus input and open dropdown options
-                input_box = plat_ms.locator('input')
-                input_box.click()
-                page.wait_for_timeout(500)
-
-                # Select Google
-                options = page.locator('li[role="option"], div[role="option"]')
-                for i in range(options.count()):
-                    if options.nth(i).inner_text().strip() == "Google":
-                        options.nth(i).click()
-                        break
-                page.wait_for_timeout(500)
-                
-                # Click outside to blur input and trigger Streamlit rerun
-                sidebar.locator('*:has-text("CAMPAIGN FILTERS")').first.click()
                 wait_for_streamlit_ready(page)
                 page.wait_for_timeout(2500)
 
@@ -375,6 +392,7 @@ def run_capture_suite():
                 if reset_btn.count() > 0:
                     reset_btn.first.click()
                     wait_for_streamlit_ready(page)
+                    page.wait_for_timeout(1500)
             except Exception as e:
                 print(f"  [WARN] Filter interaction error: {e}")
                 capture_full_dashboard(page, f9)
@@ -385,10 +403,14 @@ def run_capture_suite():
             # -------------------------------------------------------------
             print("Capturing 10_channel_insights.png...")
             f10 = SCREENSHOTS_DIR / "10_channel_insights.png"
-            tab_channels = page.locator('[data-testid="stTab"]:has-text("Channel Insights")')
+            tab_channels = page.locator(
+                '[role="tab"]:has-text("Channel Insights"), [data-testid="stTab"]:has-text("Channel Insights")'
+            )
             if tab_channels.count() > 0:
+                tab_channels.first.scroll_into_view_if_needed()
                 tab_channels.first.click()
                 wait_for_streamlit_ready(page)
+                page.wait_for_timeout(2000)
                 capture_full_dashboard(page, f10)
                 results.append(("10_channel_insights.png", f10.stat().st_size if f10.exists() else 0, f10.exists()))
             else:
@@ -400,10 +422,14 @@ def run_capture_suite():
             # -------------------------------------------------------------
             print("Capturing 11_campaign_drilldown.png...")
             f11 = SCREENSHOTS_DIR / "11_campaign_drilldown.png"
-            tab_drilldown = page.locator('[data-testid="stTab"]:has-text("Campaign Drill-Down")')
+            tab_drilldown = page.locator(
+                '[role="tab"]:has-text("Campaign Drill-Down"), [data-testid="stTab"]:has-text("Campaign Drill-Down")'
+            )
             if tab_drilldown.count() > 0:
+                tab_drilldown.first.scroll_into_view_if_needed()
                 tab_drilldown.first.click()
                 wait_for_streamlit_ready(page)
+                page.wait_for_timeout(2000)
                 capture_full_dashboard(page, f11)
                 results.append(("11_campaign_drilldown.png", f11.stat().st_size if f11.exists() else 0, f11.exists()))
             else:
@@ -415,10 +441,14 @@ def run_capture_suite():
             # -------------------------------------------------------------
             print("Capturing 12_budget_optimiser.png...")
             f12 = SCREENSHOTS_DIR / "12_budget_optimiser.png"
-            tab_optimizer = page.locator('[data-testid="stTab"]:has-text("Budget Optimiser")')
+            tab_optimizer = page.locator(
+                '[role="tab"]:has-text("Budget Optimiser"), [data-testid="stTab"]:has-text("Budget Optimiser")'
+            )
             if tab_optimizer.count() > 0:
+                tab_optimizer.first.scroll_into_view_if_needed()
                 tab_optimizer.first.click()
                 wait_for_streamlit_ready(page)
+                page.wait_for_timeout(2000)
                 capture_full_dashboard(page, f12)
                 results.append(("12_budget_optimiser.png", f12.stat().st_size if f12.exists() else 0, f12.exists()))
             else:

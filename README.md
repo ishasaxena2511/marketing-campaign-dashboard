@@ -11,7 +11,6 @@
 
 🔗 **Live Interactive Application:** https://marketinglens.streamlit.app/
 
-
 ---
 
 ## 📌 Executive Summary & Business Objective
@@ -130,35 +129,35 @@ The dashboard telemetry, executive KPI scorecards, visual analytics, and scenari
 #### 🌟 Primary Dashboard & KPI Scorecards
 | Executive Overview (Full Page) | Dual-Tier KPI Scorecards |
 | :---: | :---: |
-| [![Executive Overview](screenshots/01_full_dashboard.png)](screenshots/01_full_dashboard.png) | [![KPI Scorecards](screenshots/02_kpi_cards.png)](screenshots/02_kpi_cards.png) |
+| [![Executive Overview](screenshot/01_full_dashboard.png)](screenshot/01_full_dashboard.png) | [![KPI Scorecards](screenshot/02_kpi_cards.png)](screenshot/02_kpi_cards.png) |
 | *Full Executive Overview dashboard showcasing telemetry, scorecards, and multi-channel performance* | *10 dual-tier scorecards displaying Spend, Revenue, Net Profit, Blended ROI, ROAS, CAC, CPC, and CTR with period deltas* |
 
 #### 📊 Performance Visualizations & Conversion Funnel
 | Campaign ROI Analysis & Leaderboard | Platform Performance & Efficiency Matrix |
 | :---: | :---: |
-| [![Campaign Performance](screenshots/03_campaign_performance.png)](screenshots/03_campaign_performance.png) | [![Platform Comparison](screenshots/04_platform_comparison.png)](screenshots/04_platform_comparison.png) |
+| [![Campaign Performance](screenshot/03_campaign_performance.png)](screenshot/03_campaign_performance.png) | [![Platform Comparison](screenshot/04_platform_comparison.png)](screenshot/04_platform_comparison.png) |
 | *Top revenue drivers vs. ROI leaders against executive target ROI benchmarks* | *Cross-channel capital efficiency, volume delivery, and efficiency metrics* |
 
 | Conversion Funnel & Stage Drop-Off | Monthly Spend vs. Gross Revenue Trajectory |
 | :---: | :---: |
-| [![Conversion Funnel](screenshots/05_conversion_funnel.png)](screenshots/05_conversion_funnel.png) | [![Spend vs Revenue](screenshots/06_spend_vs_revenue.png)](screenshots/06_spend_vs_revenue.png) |
+| [![Conversion Funnel](screenshot/05_conversion_funnel.png)](screenshot/05_conversion_funnel.png) | [![Spend vs Revenue](screenshot/06_spend_vs_revenue.png)](screenshot/06_spend_vs_revenue.png) |
 | *4-stage funnel (Impressions → Clicks → Leads → Conversions) with micro drop-off diagnostics* | *Monthly expenditure area bars vs. gross revenue gold line demonstrating seasonal surge* |
 
 #### 🗺️ Geographic Performance & Cohort Intelligence
 | Audience Persona Efficiency Cohorts | India Regional Performance Map |
 | :---: | :---: |
-| [![Audience Segments](screenshots/07_audience_segments.png)](screenshots/07_audience_segments.png) | [![Regional Map](screenshots/08_regional_map.png)](screenshots/08_regional_map.png) |
+| [![Audience Segments](screenshot/07_audience_segments.png)](screenshot/07_audience_segments.png) | [![Regional Map](screenshot/08_regional_map.png)](screenshot/08_regional_map.png) |
 | *Audience cohort analysis across Tech Enthusiasts, Families, Working Professionals, and Students* | *Choropleth/scattergeo bubble map highlighting regional CAC, ROI, and revenue distributions across India* |
 
 #### 🎯 Strategic Analysis, Forecasting & Simulation Tabs
 | Filtered View (Google Deep-Dive) | Channel Insights & 3-Month Forecast |
 | :---: | :---: |
-| [![Filtered View](screenshots/09_filtered_view.png)](screenshots/09_filtered_view.png) | [![Channel Insights](screenshots/10_channel_insights.png)](screenshots/10_channel_insights.png) |
+| [![Filtered View](screenshot/09_filtered_view.png)](screenshot/09_filtered_view.png) | [![Channel Insights](screenshot/10_channel_insights.png)](screenshot/10_channel_insights.png) |
 | *Dynamic sidebar reactive filtering isolating Google search campaigns (₹1.15Cr spend, 60 campaigns)* | *Holt's Exponential Smoothing forecast with 95% confidence intervals and efficiency quadrant* |
 
 | Campaign Drill-Down & Diagnostics | What-If Budget Optimiser Sandbox |
 | :---: | :---: |
-| [![Campaign Drill-Down](screenshots/11_campaign_drilldown.png)](screenshots/11_campaign_drilldown.png) | [![Budget Optimiser](screenshots/12_budget_optimiser.png)](screenshots/12_budget_optimiser.png) |
+| [![Campaign Drill-Down](screenshot/11_campaign_drilldown.png)](screenshot/11_campaign_drilldown.png) | [![Budget Optimiser](screenshot/12_budget_optimiser.png)](screenshot/12_budget_optimiser.png) |
 | *Granular single-campaign telemetry, run-rate pacing, benchmark variances, and strategic verdict* | *Interactive capital reallocation sliders with non-linear diminishing-returns response curves ($\beta = 0.85$)* |
 
 ---
@@ -236,7 +235,7 @@ playwright install chromium
 python src/capture_screenshots.py
 ```
 
-The script spins up an ephemeral Streamlit instance on port 8599, synchronizes with Plotly SVG render layers, programmatically interacts with sidebar filters, navigates all executive tabs, captures 12 sharp PNG assets into `screenshots/`, and cleans up background processes automatically.
+The script spins up an ephemeral Streamlit instance on port 8599, synchronizes with Plotly SVG render layers, programmatically interacts with sidebar filters, navigates all executive tabs, captures 12 sharp PNG assets into `screenshot/`, and cleans up background processes automatically.
 
 ---
 
@@ -279,7 +278,7 @@ marketing-campaign-dashboard/
 │       ├── performance.py         # ROI leaderboard, channel matrices, funnels, and trajectories
 │       ├── audience_region.py     # India regional bubble map, audience cohorts, and directory table
 │       ├── channel_insights.py    # Efficiency quadrants and 3-month predictive forecast
-│       ├── drilldown.py           # Single-campaign telemetry, run-rates, and benchmark variances
+│       ├── drilldown.py           # Single-campaign telemetry, run-rate pacing, and benchmark variances
 │       ├── budget_optimizer.py    # Diminishing-returns what-if simulation sliders
 │       ├── insights_panel.py      # Dynamic executive natural-language insight cards
 │       └── export_report.py       # Print-ready executive HTML summary export generator
@@ -295,7 +294,7 @@ marketing-campaign-dashboard/
 │   ├── resume_lines.md            # Resume bullets (1-line, 2-line, and ATS-friendly formats)
 │   └── interview_prep.md          # 10 deep-dive technical and business interview Q&As
 │
-├── screenshots/                   # Production-grade 4K dashboard screenshot captures (12 assets)
+├── screenshot/                    # Production-grade 4K dashboard screenshot captures (12 assets)
 │   ├── 01_full_dashboard.png      # Executive Overview full dashboard capture
 │   ├── 02_kpi_cards.png           # Dual-tier executive KPI scorecards
 │   ├── 03_campaign_performance.png# Campaign ROI analysis & revenue leaderboard
