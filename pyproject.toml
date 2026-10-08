@@ -1,0 +1,15 @@
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",  # Line length handled by formatter
+    "W291",  # Trailing whitespace (used intentionally in Markdown hard breaks)
+    "W293",  # Blank line whitespace in multiline JS/HTML templates
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
