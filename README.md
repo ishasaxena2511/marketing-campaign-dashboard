@@ -9,7 +9,8 @@
 
 > **An enterprise-grade, interactive executive analytics suite and econometric simulation engine designed to evaluate multi-channel marketing efficiency, conversion funnel bottlenecks, and capital reallocation across Google, Meta (Facebook & Instagram), LinkedIn, Email, and YouTube.**
 
-🔗 **Live Interactive Application:** [Launch Live Executive Dashboard](https://marketing-campaign-intelligence.streamlit.app/) *(Placeholder)*
+🔗 **Live Interactive Application:** https://marketinglens.streamlit.app/
+
 
 ---
 
